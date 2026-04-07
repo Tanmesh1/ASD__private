@@ -1,10 +1,13 @@
 from decimal import Decimal
 
+from fastapi import UploadFile
+
 from app.core.exceptions import NotFoundError
 from app.repositories.category_repository import CategoryRepository
 from app.repositories.product_repository import ProductRepository
 from app.schemas.product import ProductCreate, ProductResponse, ProductUpdate
 from app.services.cloudinary_service import CloudinaryService
+from app.services.upload_service import UploadService
 
 
 class ProductService:
@@ -13,6 +16,7 @@ class ProductService:
         self.products = ProductRepository(db)
         self.categories = CategoryRepository(db)
         self.cloudinary = CloudinaryService()
+        self.uploads = UploadService()
 
     def _get_category(self, store_id: int, category_id: int):
         category = self.categories.get_by_id(store_id=store_id, category_id=category_id)
@@ -28,7 +32,7 @@ class ProductService:
             description=product.description,
             price=product.price,
             stock=product.stock,
-            image_url=product.image_url,
+            image_url=str(product.image_url) if product.image_url else None,
             is_active=product.is_active,
             category_id=product.category_id,
             category=product.category.name if product.category else "",
@@ -50,6 +54,21 @@ class ProductService:
 
         product = self.products.get_by_id(store_id=store_id, product_id=product.id)
         return self._serialize(product)
+
+    def create_product_with_image(
+        self,
+        store_id: int,
+        payload: ProductCreate,
+        image: UploadFile,
+    ) -> ProductResponse:
+        self._get_category(store_id, payload.category_id)
+        image_url, image_public_id = self.uploads.save_product_image(image)
+        payload_with_image = ProductCreate(
+            **payload.model_dump(exclude={"image_url", "image_public_id"}),
+            image_url=image_url,
+            image_public_id=image_public_id,
+        )
+        return self.create_product(store_id=store_id, payload=payload_with_image)
 
     def update_product(self, store_id: int, product_id: int, payload: ProductUpdate) -> ProductResponse:
         product = self.products.get_by_id(store_id=store_id, product_id=product_id)

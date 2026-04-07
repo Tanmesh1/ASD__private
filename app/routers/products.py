@@ -1,6 +1,6 @@
 from decimal import Decimal
 
-from fastapi import APIRouter, Depends, Query, status
+from fastapi import APIRouter, Depends, File, Form, Query, UploadFile, status
 
 from app.database.session import get_db
 from app.routers.dependencies import get_store_id
@@ -11,13 +11,27 @@ from app.services.product_service import ProductService
 router = APIRouter(prefix="/products", tags=["Products"])
 
 
-@router.post("", response_model=ProductResponse, status_code=status.HTTP_201_CREATED)
-def create_product(
-    payload: ProductCreate,
+@router.post("/with-image", response_model=ProductResponse, status_code=status.HTTP_201_CREATED)
+def create_product_with_image(
+    name: str = Form(...),
+    description: str = Form(...),
+    price: Decimal = Form(...),
+    stock: int = Form(...),
+    category_id: int = Form(...),
+    is_active: bool = Form(True),
+    file: UploadFile = File(...),
     store_id: int = Depends(get_store_id),
     db=Depends(get_db),
 ) -> ProductResponse:
-    return ProductService(db).create_product(store_id=store_id, payload=payload)
+    payload = ProductCreate(
+        name=name,
+        description=description,
+        price=price,
+        stock=stock,
+        category_id=category_id,
+        is_active=is_active,
+    )
+    return ProductService(db).create_product_with_image(store_id=store_id, payload=payload, image=file)
 
 
 @router.get("", response_model=ProductListResponse)
