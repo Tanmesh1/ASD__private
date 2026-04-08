@@ -180,6 +180,10 @@ class MongoSession:
     def get_product_by_id(self, store_id: int, product_id: int) -> SimpleNamespace | None:
         return self._product_namespace(self.db.products.find_one({"store_id": store_id, "id": product_id}))
 
+    def list_products_by_store(self, store_id: int) -> list[SimpleNamespace]:
+        docs = self.db.products.find({"store_id": store_id}).sort("name", ASCENDING)
+        return [self._product_namespace(doc) for doc in docs]
+
     def delete_product(self, product_id: int) -> None:
         self.db.products.delete_one({"id": product_id})
 

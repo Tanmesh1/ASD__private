@@ -124,6 +124,10 @@ class ProductService:
         )
         return [self._serialize(product) for product in products]
 
+    def list_all_products(self, store_id: int) -> list[ProductResponse]:
+        products = self.products.list_by_store(store_id=store_id)
+        return [self._serialize(product) for product in products]
+
     def search_products(
         self,
         store_id: int,

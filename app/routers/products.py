@@ -1,6 +1,9 @@
+from csv import writer
 from decimal import Decimal
+from io import StringIO
 
 from fastapi import APIRouter, Depends, File, Form, Query, UploadFile, status
+from fastapi.responses import Response
 
 from app.database.session import get_db
 from app.routers.dependencies import get_store_id
@@ -74,6 +77,53 @@ def search_products(
         limit=limit,
     )
     return ProductListResponse(products=products)
+
+
+@router.get("/export")
+def export_products(
+    store_id: int = Depends(get_store_id),
+    db=Depends(get_db),
+) -> Response:
+    products = ProductService(db).list_all_products(store_id=store_id)
+    output = StringIO()
+    csv_writer = writer(output)
+    csv_writer.writerow(
+        [
+            "id",
+            "store_id",
+            "name",
+            "description",
+            "price",
+            "stock",
+            "category_id",
+            "category",
+            "image_url",
+            "image_public_id",
+            "is_active",
+        ]
+    )
+    for product in products:
+        csv_writer.writerow(
+            [
+                product.id,
+                product.store_id,
+                product.name,
+                product.description,
+                product.price,
+                product.stock,
+                product.category_id,
+                product.category,
+                product.image_url,
+                product.image_public_id,
+                product.is_active,
+            ]
+        )
+
+    return Response(
+        content=output.getvalue(),
+        media_type="text/csv",
+        headers={"Content-Disposition": "attachment; filename=products.csv"},
+    )
 
 
 @router.put("/{product_id}", response_model=ProductResponse)

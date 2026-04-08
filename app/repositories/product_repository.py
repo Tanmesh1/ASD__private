@@ -8,6 +8,9 @@ class ProductRepository:
     def get_by_id(self, store_id: int, product_id: int):
         return self.db.get_product_by_id(store_id=store_id, product_id=product_id)
 
+    def list_by_store(self, store_id: int):
+        return self.db.list_products_by_store(store_id=store_id)
+
     def delete(self, product) -> None:
         self.db.delete_product(product.id)
 
