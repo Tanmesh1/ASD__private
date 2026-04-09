@@ -19,6 +19,9 @@ class CategoryService:
     def list_categories(self, store_id: int):
         return self.categories.list_by_store(store_id)
 
+    def count_categories(self, store_id: int) -> int:
+        return self.db.count_categories(store_id)
+
     def delete_category(self, store_id: int, category_id: int) -> None:
         category = self.categories.get_by_id(store_id=store_id, category_id=category_id)
         if not category:

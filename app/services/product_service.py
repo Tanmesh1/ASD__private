@@ -124,6 +124,12 @@ class ProductService:
         )
         return [self._serialize(product) for product in products]
 
+    def get_product(self, store_id: int, product_id: int) -> ProductResponse:
+        product = self.products.get_by_id(store_id=store_id, product_id=product_id)
+        if not product:
+            raise NotFoundError("Product not found for this store.")
+        return self._serialize(product)
+
     def list_all_products(self, store_id: int) -> list[ProductResponse]:
         products = self.products.list_by_store(store_id=store_id)
         return [self._serialize(product) for product in products]
@@ -147,3 +153,9 @@ class ProductService:
             active_only=True,
         )
         return [self._serialize(product) for product in products]
+
+    def count_products(self, store_id: int) -> int:
+        return self.db.count_products(store_id)
+
+    def count_low_stock_products(self, store_id: int, threshold: int = 10) -> int:
+        return self.db.count_low_stock_products(store_id, threshold)

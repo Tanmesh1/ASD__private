@@ -1,4 +1,5 @@
 from contextlib import asynccontextmanager
+import logging
 from pathlib import Path
 
 from fastapi import FastAPI, Request, status
@@ -14,8 +15,10 @@ from app.routers.auth import router as auth_router
 from app.routers.categories import router as category_router
 from app.routers.products import router as product_router
 from app.routers.uploads import router as upload_router
+from app.routers.webhook import router as webhook_router
 
 settings = get_settings()
+logging.basicConfig(level=logging.INFO if settings.app_env != "production" else logging.WARNING)
 Path(settings.upload_dir).mkdir(parents=True, exist_ok=True)
 
 
@@ -42,6 +45,7 @@ app.include_router(auth_router, prefix=settings.api_v1_prefix)
 app.include_router(category_router, prefix=settings.api_v1_prefix)
 app.include_router(product_router, prefix=settings.api_v1_prefix)
 app.include_router(upload_router, prefix=settings.api_v1_prefix)
+app.include_router(webhook_router)
 app.mount("/uploads", StaticFiles(directory=settings.upload_dir), name="uploads")
 
 

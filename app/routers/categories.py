@@ -30,6 +30,14 @@ def list_categories(
     return CategoryService(db).list_categories(store_id=store_id)
 
 
+@router.get("/count", response_model=int)
+def count_categories(
+    store_id: int = Depends(get_store_id),
+    db=Depends(get_db),
+) -> int:
+    return CategoryService(db).count_categories(store_id)
+
+
 @router.get("/export")
 def export_categories(
     store_id: int = Depends(get_store_id),

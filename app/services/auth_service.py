@@ -55,4 +55,5 @@ class AuthService:
             merchant_name=merchant.name,
             store_id=store.id,
             store_name=store.name,
+            email=merchant.email,
         )

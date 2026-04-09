@@ -42,3 +42,4 @@ class LoginResponse(BaseModel):
     merchant_name: str
     store_id: int
     store_name: str
+    email: EmailStr

@@ -19,6 +19,19 @@ class Settings(BaseSettings):
     cloudinary_api_key: str | None = None
     cloudinary_api_secret: str | None = None
     cloudinary_product_folder: str = "products"
+    verify_token: str | None = None
+    access_token: str | None = None
+    phone_number_id: str | None = None
+    whatsapp_graph_api_version: str = "v18.0"
+    whatsapp_auto_reply_text: str = "Hello, thanks for your message!"
+    openai_api_key: str | None = None
+    openai_base_url: str = "https://api.openai.com/v1"
+    openai_intent_model: str = "gpt-5-mini"
+    openai_response_model: str = "gpt-5-mini"
+    ai_default_store_id: int = 1
+    ai_max_search_results: int = 6
+    ai_max_images_per_reply: int = 3
+    port: int = 8000
 
     model_config = SettingsConfigDict(
         env_file=".env",

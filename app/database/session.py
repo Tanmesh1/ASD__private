@@ -4,7 +4,7 @@ from decimal import Decimal
 from types import SimpleNamespace
 from typing import Any
 
-from pymongo import ASCENDING, MongoClient, ReturnDocument
+from pymongo import ASCENDING, TEXT, MongoClient, ReturnDocument
 
 from app.core.config import get_settings
 
@@ -39,6 +39,12 @@ class MongoSession:
         self.db.products.create_index([("store_id", ASCENDING)])
         self.db.products.create_index([("store_id", ASCENDING), ("name", ASCENDING)])
         self.db.products.create_index([("category_id", ASCENDING)])
+        self.db.products.create_index([("name", TEXT), ("description", TEXT)])
+        self.db.whatsapp_messages.create_index([("message_id", ASCENDING)], unique=True)
+        self.db.whatsapp_messages.create_index([("sender_phone", ASCENDING)])
+        self.db.whatsapp_messages.create_index([("received_at", ASCENDING)])
+        self.db.whatsapp_message_statuses.create_index([("message_id", ASCENDING)], unique=True)
+        self.db.whatsapp_message_statuses.create_index([("status", ASCENDING)])
 
     def close(self) -> None:
         self.client.close()
@@ -227,6 +233,30 @@ class MongoSession:
 
         docs = self.db.products.find(filters).sort("name", ASCENDING).limit(min(limit, 100))
         return [self._product_namespace(doc) for doc in docs]
+
+    def create_whatsapp_message_if_absent(self, doc: dict[str, Any]) -> bool:
+        result = self.db.whatsapp_messages.update_one(
+            {"message_id": doc["message_id"]},
+            {"$setOnInsert": doc},
+            upsert=True,
+        )
+        return result.upserted_id is not None
+
+    def upsert_whatsapp_status(self, doc: dict[str, Any]) -> None:
+        self.db.whatsapp_message_statuses.update_one(
+            {"message_id": doc["message_id"]},
+            {"$set": doc},
+            upsert=True,
+        )
+
+    def count_products(self, store_id: int) -> int:
+        return self.db.products.count_documents({"store_id": store_id})
+
+    def count_low_stock_products(self, store_id: int, threshold: int = 10) -> int:
+        return self.db.products.count_documents({"store_id": store_id, "stock": {"$lte": threshold}})
+
+    def count_categories(self, store_id: int) -> int:
+        return self.db.categories.count_documents({"store_id": store_id})
 
 
 engine = None

@@ -79,6 +79,23 @@ def search_products(
     return ProductListResponse(products=products)
 
 
+@router.get("/count", response_model=int)
+def count_products(
+    store_id: int = Depends(get_store_id),
+    db=Depends(get_db),
+) -> int:
+    return ProductService(db).count_products(store_id)
+
+
+@router.get("/low-stock", response_model=int)
+def count_low_stock_products(
+    threshold: int = Query(default=10, ge=1),
+    store_id: int = Depends(get_store_id),
+    db=Depends(get_db),
+) -> int:
+    return ProductService(db).count_low_stock_products(store_id, threshold)
+
+
 @router.get("/export")
 def export_products(
     store_id: int = Depends(get_store_id),
@@ -126,21 +143,10 @@ def export_products(
     )
 
 
-@router.put("/{product_id}", response_model=ProductResponse)
-def update_product(
+@router.get("/{product_id}", response_model=ProductResponse)
+def get_product(
     product_id: int,
-    payload: ProductUpdate,
     store_id: int = Depends(get_store_id),
     db=Depends(get_db),
 ) -> ProductResponse:
-    return ProductService(db).update_product(store_id=store_id, product_id=product_id, payload=payload)
-
-
-@router.delete("/{product_id}", response_model=MessageResponse)
-def delete_product(
-    product_id: int,
-    store_id: int = Depends(get_store_id),
-    db=Depends(get_db),
-) -> MessageResponse:
-    ProductService(db).delete_product(store_id=store_id, product_id=product_id)
-    return MessageResponse(message="Product deleted successfully.")
+    return ProductService(db).get_product(store_id=store_id, product_id=product_id)
