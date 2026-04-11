@@ -35,6 +35,9 @@ class Settings(BaseSettings):
     ai_default_store_id: int = 1
     ai_max_search_results: int = 6
     ai_max_images_per_reply: int = 3
+    ai_reply_greeting_prefix: str = "Hi"
+    ai_greeting_only_response: str = "How can I help you today? You can ask me about any product, price, or category."
+    ai_empty_reply_fallback: str = "How can I help you today?"
     port: int = 8000
 
     model_config = SettingsConfigDict(
